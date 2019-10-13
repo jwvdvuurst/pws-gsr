@@ -12,6 +12,9 @@ int round = 1;
 
 int maxheight;
 int maxwidth;
+int starttime;
+int endtime;
+int round_duration;
 
 String port;
 
@@ -32,6 +35,11 @@ void setup() {
   } else {
     port = new String("None");
   }
+  
+  round_duration = 1;
+  
+  starttime = millis();
+  endtime = millis() + (round_duration*60*1000);
 }
 
 void pickLocation() {
@@ -66,7 +74,25 @@ void draw() {
   
   String rndstr = new String( "Round: "+round );
   text( rndstr, 10, maxheight + 80 );
+ 
+  int now = millis();
+  int remain = endtime - now;
   
+  int seconds = (int) (remain / 1000) % 60 ;
+  int minutes = (int) ((remain / (1000*60)) % 60);
+  
+  String timestr = new String( "Time "+minutes+":"+ seconds );
+  text( timestr, 300, maxheight + 40 );
+  
+  if (remain <= 0) {
+    if (round == 1) {
+      starttime = millis();
+      endtime = starttime + (round_duration*60*1000);
+      round = 2;
+    } else {
+      ;
+    }
+  }
 }
 
 void keyPressed() {
