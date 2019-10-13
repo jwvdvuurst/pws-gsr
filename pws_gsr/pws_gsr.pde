@@ -90,5 +90,12 @@ void keyPressed() {
     } else if (keyCode == DOWN) {
       s.dir(-1, 0);
     }
-  }  
+  }
+  if (key == 'r' || key == 'R') {
+    if ( round == 1 ) {
+      round = 2;
+    } else {
+      round = 1;
+    }
+  }
 }
