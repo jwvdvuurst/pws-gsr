@@ -3,9 +3,7 @@
 //   http:  patreon.com/codingtrain
 //   Code for: https:  youtu.be/AaGK-fj-BAM
 
-import processing.serial.*;
-Serial myport;
-
+Gsr gsr;
 Snake s;
 int scl = 20;
 int round = 1;
@@ -29,12 +27,7 @@ void setup() {
   maxheight = height - 100;
   maxwidth = width;
   
-  if ( Serial.list().length > 0 ) {
-     port = new String( Serial.list()[0] );
-     myport = new Serial(this, port, 9600);
-  } else {
-    port = new String("None");
-  }
+  gsr = new Gsr();
   
   round_duration = 1;
   
@@ -70,7 +63,7 @@ void draw() {
   line( 0, maxheight+1, maxwidth, maxheight+1 );
 
   textSize(32);
-  text( port, 10, maxheight + 40 );
+  text( gsr.getPort(), 10, maxheight + 40 );
   
   String rndstr = new String( "Round: "+round );
   text( rndstr, 10, maxheight + 80 );
