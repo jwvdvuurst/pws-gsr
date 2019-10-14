@@ -54,9 +54,9 @@ class Snake {
     y = y + yspeed*scl;
     
     if (x < 0) {
-      x = maxwidth;
+      x = maxwidth-scl;
     }
-    if (x > maxwidth) {
+    if (x > maxwidth-scl) {
       x=0;
     } 
     if (y < 0) {
@@ -66,14 +66,12 @@ class Snake {
       y=0;
     } 
     
-    
-   
-
 //    x = constrain(x, 0, width-scl);
 //    y = constrain(y, 0, (height-100)-scl);
   }
 
   void show() {
+    stroke(0);
     fill(255);
     for (PVector v : tail) {
       rect(v.x, v.y, scl, scl);
