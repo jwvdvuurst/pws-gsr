@@ -1,11 +1,13 @@
-//   Daniel Shiffman
+//   Daniel Shiffman //<>//
 //   http:  codingtra.in
 //   http:  patreon.com/codingtrain
 //   Code for: https:  youtu.be/AaGK-fj-BAM
 
-import processing.serial.*;
+import processing.serial.*;    
 import java.io.BufferedWriter;
+import java.io.BufferedReader;
 import java.io.FileWriter;
+import java.io.FileReader;
 
 
 //Gsr gsr;
@@ -25,19 +27,20 @@ String port;
 
 PVector food;
 
-//   private String port;
-   private Serial myport;
-   
-   private IntList measurements;
-   private boolean gsrinitialized;
-   private boolean loginitialized;
-   private int session;
+Serial myport;
 
-   private BufferedWriter logfile;
+IntList measurements;
+boolean gsrinitialized;
+boolean loginitialized;
+int session;
 
-   private String name;
+BufferedWriter logfile;
 
-  void setup() {
+String name;
+
+String hd=System.getProperty("user.home");
+
+void setup() {
   size(600, 700);
   s = new Snake();
   frameRate(10);
@@ -45,23 +48,58 @@ PVector food;
 
   maxheight = height - 100;
   maxwidth = width;
-  
-//  gsr = new Gsr();
+
+  File sessions = new File(hd+File.separator+"sessions.txt");
+
+  try {
+    session = 1;
+
+    if (!sessions.exists()) {
+      println( "Session file not found, create new one" );
+      sessions.createNewFile();
+      FileWriter writer = new FileWriter(sessions);
+      writer.write(str(session)+"\n");
+      writer.flush();
+      writer.close();
+    } else {
+      println( "Session file found, reading and updating it" );
+      BufferedReader reader = new BufferedReader(new FileReader(sessions));
+
+      String line;
+      line=reader.readLine();
+      if (line != null) {
+        session = int(line);
+      } else {
+        session = 1;
+      }
+      reader.close();
+
+      session++;
+
+      FileWriter writer = new FileWriter(sessions, false );
+      writer.write(str(session)+"\n");
+      writer.flush();
+      writer.close();
+    }
+  } 
+  catch (IOException e) {
+    println( "IOException session file read/write" );
+    logMsg( "Could not read/write session file" );
+  }
+
+  //  gsr = new Gsr();
   initGsr();
   initlog4p();
-  
+
   round_duration = 1;
-  
+
   starttime = millis();
   endtime = millis() + (round_duration*60*1000);
-
 }
 
-  
-void initlog4p() {
-  String hd=System.getProperty("user.home");
-  
-  name = new String( hd+File.separator+"gsr_experiment.csv" );
+
+void initlog4p() {    
+  name = new String( hd+File.separator+"gsr_experiment"+session+".csv" );
   loginitialized = false;
   open();
 }
@@ -71,7 +109,6 @@ boolean isLogInitialized() {
 }
 
 void setName( String name ) {
-  String hd=System.getProperty("user.home");
   String newname=new String( hd+File.separator+name );
   if ( loginitialized ) {
     if ( name != newname ) {
@@ -85,25 +122,28 @@ void setName( String name ) {
 String getName() {
   return name;
 }
-  
+
 void open() {
   if ( loginitialized ) {
     close();
   }
-  
+
   loginitialized = false;
-  
+
   try {
-     logfile = new BufferedWriter( new FileWriter( name ) );
-     loginitialized = true;
-  } catch (Exception e ) {
+    logfile = new BufferedWriter( new FileWriter( name ) );
+    loginitialized = true;
+  } 
+  catch (Exception e ) {
     println( "Exception occured while opening file \""+name+"\" : "+e.getMessage() );
-  } finally {
+  } 
+  finally {
     if (loginitialized) {
       try {
-         logfile.write( "Opened file \""+name+"\"" );
-         logfile.flush();
-      } catch (IOException e) {
+        logfile.write( "Opened file \""+name+"\"" );
+        logfile.flush();
+      } 
+      catch (IOException e) {
         println( "IOException occurred while writing to file \""+name+"\" : "+e.getMessage() );
       }
     } else {
@@ -120,12 +160,13 @@ void open( String name ) {
 void close() {
   if (loginitialized) {
     try {
-       logfile.flush();
-       logfile.close();
-    } catch (IOException e ) {
+      logfile.flush();
+      logfile.close();
+    } 
+    catch (IOException e ) {
       println( "IOException occurred while closing file \""+name+"\"" );
     }
-    
+
     loginitialized = false;
   }
 }
@@ -133,10 +174,11 @@ void close() {
 void logMsg( String message ) {
   if (loginitialized) {
     String logMessage = extend( message );
-    
+
     try {
-       logfile.write( logMessage+"\n" );
-    } catch (IOException e) {
+      logfile.write( logMessage+"\n" );
+    } 
+    catch (IOException e) {
       println( "IOException occurred while writing message \""+message+"\" to file \""+name+"\"" );
     }
   } else {
@@ -145,63 +187,63 @@ void logMsg( String message ) {
 }
 
 String extend( String message ) {
-   long timestamp = System.currentTimeMillis();
-    
-   int seconds = (int) ((timestamp / 1000) % 60);
-   int minutes = (int) ((timestamp / 1000*60) % 60);
+  long timestamp = System.currentTimeMillis();
 
-   String outmsg = new String( minutes+":"+seconds+" : "+message );
-   
-   return outmsg;
+  int seconds = (int) ((timestamp / 1000) % 60);
+  int minutes = (int) ((timestamp / 1000*60) % 60);
+
+  String outmsg = new String( minutes+":"+seconds+" : "+message );
+
+  return outmsg;
 }
- 
- void initGsr() {
-   gsrinitialized=false;
-   session = 0;
-   
-   if ( Serial.list().length > 0 ) {
-      port = new String( Serial.list()[0] );
-      try {
-         myport = new Serial( this, port, 9600);
-         gsrinitialized=true;
-         myport.write("A");
-      } catch (Exception e) {
-        logMsg( "Exception "+e.toString()+" occurred during opening of serial port." );
-        logMsg( e.getMessage() );
-      }
-   } else {
-      port = new String("None");
-   }
- 
-   measurements = new IntList();
- }
- 
- String getPort() {
-   return port;
- }
- 
- boolean isGsrInitialized() {
-   return gsrinitialized;
- }
- 
- int getNumMeasurements() {
-   return measurements.size();
- }
-  
- void getMeasurement() {
-    if (gsrinitialized) {
-       if (myport.available() > 0) {
-          int measure = myport.read();
-          volt = (measure * 5) / 1024;
-          
-          measurements.append(measure);
-          myport.write("A");
-          logMsg( new String( "M;"+getNumMeasurements() +";" + measure + ";" + volt ) );
-       }
-    } else {
-      logMsg( "Not initialized, not taking a measurement" );
+
+void initGsr() {
+  gsrinitialized=false;
+
+  if ( Serial.list().length > 0 ) {
+    port = new String( Serial.list()[0] );
+    try {
+      myport = new Serial( this, port, 9600);
+      gsrinitialized=true;
+      myport.write("A");
+    } 
+    catch (Exception e) {
+      logMsg( "Exception "+e.toString()+" occurred during opening of serial port." );
+      logMsg( e.getMessage() );
     }
- }
+  } else {
+    port = new String("None");
+  }
+
+  measurements = new IntList();
+}
+
+String getPort() {
+  return port;
+}
+
+boolean isGsrInitialized() {
+  return gsrinitialized;
+}
+
+int getNumMeasurements() {
+  return measurements.size();
+}
+
+void getMeasurement() {
+  if (gsrinitialized) {
+    if (myport.available() > 0) {
+      int measure = myport.read();
+      volt = (measure * 5) / 1024;
+
+      measurements.append(measure);
+      myport.write("A");
+      logMsg( new String( "M;"+getNumMeasurements() +";" + measure + ";" + volt ) );
+    }
+  } else {
+    logMsg( "Not initialized, not taking a measurement" );
+  }
+}
 
 void pickLocation() {
   int cols = maxwidth/scl;
@@ -232,35 +274,40 @@ void draw() {
 
   textSize(32);
   text( getPort(), 10, maxheight + 40 );
-  
+
   String rndstr = new String( "Round: "+round );
   text( rndstr, 10, maxheight + 80 );
- 
+
   int now = millis();
   int remain = endtime - now;
-  
+
   int seconds = (int) (remain / 1000) % 60 ;
   int minutes = (int) ((remain / (1000*60)) % 60);
-  
+
   String timestr = new String( "Time "+minutes+":"+ seconds );
   text( timestr, 300, maxheight + 40 );
-    
+
   if (gsrinitialized) {
-    text( "g", 300, maxheight + 80 );
+    if (loginitialized) {
+      text( "gl", 280, maxheight + 80 );
+    } else {
+      text( "g-", 280, maxheight + 80 );
+    }
   } else {
-    text( "-", 300, maxheight + 80 );
+    if (loginitialized) {
+      text( "-l", 280, maxheight + 80 );
+    } else {
+      text( "--", 280, maxheight + 80 );
+    }
   }
-  
-  if (loginitialized ) {
-    text( "l", 340, maxheight + 80 );
-  } else {
-    text( "-", 340, maxheight + 80 );    
-  }
-  
-  text( str(volt), 380, maxheight + 80 );
-  
+
+  String sessionstr = new String ( "Session "+session );
+  text( sessionstr, 320, maxheight + 80 );
+
+  //  text( str(volt), 380, maxheight + 80 );
+
   getMeasurement();
-  
+
   if (remain <= 0) {
     if (round == 1) {
       starttime = millis();
