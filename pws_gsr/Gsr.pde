@@ -4,7 +4,6 @@ class Gsr {
   
    private String port;
    private Serial myport;
-   private log4p output;
    
    private IntList measurements;
    private boolean initialized;
@@ -14,8 +13,6 @@ class Gsr {
    Gsr() {
      initialized=false;
      session = 0;
-
-     output = log4p.getInstance();
      
      if ( Serial.list().length > 0 ) {
         port = new String( Serial.list()[0] );
