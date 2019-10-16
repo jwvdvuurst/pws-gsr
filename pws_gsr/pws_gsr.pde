@@ -15,6 +15,7 @@ int endtime;
 int round_duration;
 
 String port;
+log4p output;
 
 PVector food;
 
@@ -33,6 +34,7 @@ void setup() {
   
   starttime = millis();
   endtime = millis() + (round_duration*60*1000);
+  output = log4p.getInstance();
 }
 
 void pickLocation() {
@@ -76,6 +78,23 @@ void draw() {
   
   String timestr = new String( "Time "+minutes+":"+ seconds );
   text( timestr, 300, maxheight + 40 );
+    
+  if (gsr.isInitialized() ) {
+    text( "I", 300, maxheight + 80 );
+  } else {
+    text( "-", 300, maxheight + 80 );
+  }
+  
+  if (output.isInitialized() ) {
+    text( "I", 340, maxheight + 80 );
+  } else {
+    text( "_", 340, maxheight + 80 );    
+  }
+  
+  text( output.getName(), 100, 100 );
+ 
+  output.logMsg( "Take measurement" );
+  gsr.getMeasurement();
   
   if (remain <= 0) {
     if (round == 1) {
