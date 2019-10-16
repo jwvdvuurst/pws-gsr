@@ -1,58 +1,58 @@
-import processing.serial.*;
 
-class Gsr {
+
+//class Gsr {
   
-   private String port;
-   private Serial myport;
+//   private String port;
+//   private Serial myport;
    
-   private IntList measurements;
-   private boolean initialized;
+//   private IntList measurements;
+//   private boolean initialized;
 
-   private int session;
+//   private int session;
    
-   Gsr() {
-     initialized=false;
-     session = 0;
+//   Gsr() {
+//     initialized=false;
+//     session = 0;
      
-     if ( Serial.list().length > 0 ) {
-        port = new String( Serial.list()[0] );
-        try {
-           myport = new Serial(null, port, 9600);
-           initialized=true;
-           myport.write("a");
-        } catch (Exception e) {
-          output.logMsg( "Exception "+e.toString()+" occurred during opening of serial port." );
-          output.logMsg( e.getMessage() );
-        }
-     } else {
-        port = new String("None");
-     }
+//     if ( Serial.list().length > 0 ) {
+//        port = new String( Serial.list()[0] );
+////        try {
+//           myport = new Serial( pws_gsr, port, 9600);
+//           initialized=true;
+//           myport.write("A");
+////        } catch (Exception e) {
+////          output.logMsg( "Exception "+e.toString()+" occurred during opening of serial port." );
+////          output.logMsg( e.getMessage() );
+////        }
+//     } else {
+//        port = new String("None");
+//     }
  
-     measurements = new IntList();
-   }
+//     measurements = new IntList();
+//   }
    
-   String getPort() {
-     return port;
-   }
+//   String getPort() {
+//     return port;
+//   }
    
-   boolean isInitialized() {
-     return initialized;
-   }
+//   boolean isInitialized() {
+//     return initialized;
+//   }
    
-   int getNumMeasurements() {
-     return measurements.size();
-   }
+//   int getNumMeasurements() {
+//     return measurements.size();
+//   }
     
-   void getMeasurement() {
-      if (initialized) {
-         if (myport.available() > 0) {
-            int measure = myport.read();
-            measurements.append(measure);
-            myport.write("a");
-            output.logMsg( new String( getNumMeasurements() +";" + measure ) );
-         }
-      } else {
-        output.logMsg( "Not initialized, not taking a measurement" );
-      }
-   }
-}
+//   void getMeasurement() {
+//      if (initialized) {
+//         if (myport.available() > 0) {
+//            int measure = myport.read();
+//            measurements.append(measure);
+//            myport.write("a");
+//            output.logMsg( new String( getNumMeasurements() +";" + measure ) );
+//         }
+//      } else {
+//        output.logMsg( "Not initialized, not taking a measurement" );
+//      }
+//   }
+//}
