@@ -14,6 +14,8 @@ import java.io.FileReader;
 Snake s;
 int scl = 20;
 int round = 1;
+float basevolt = 5.0f;       //5v
+float averagecurrent = 0.5f; //500mA max.
 
 int maxheight;
 int maxwidth;
@@ -22,6 +24,7 @@ int endtime;
 int round_duration;
 
 float volt;
+float conductivity;
 
 String port;
 
@@ -32,6 +35,7 @@ Serial myport;
 IntList measurements;
 boolean gsrinitialized;
 boolean loginitialized;
+boolean showdetails = false;
 int session;
 
 BufferedWriter logfile;
@@ -41,12 +45,12 @@ String name;
 String hd=System.getProperty("user.home");
 
 void setup() {
-  size(600, 700);
+  size(600, 800);
   s = new Snake();
   frameRate(10);
   pickLocation();
 
-  maxheight = height - 100;
+  maxheight = height - 200;
   maxwidth = width;
 
   File sessions = new File(hd+File.separator+"sessions.txt");
@@ -234,7 +238,9 @@ void getMeasurement() {
   if (gsrinitialized) {
     if (myport.available() > 0) {
       int measure = myport.read();
-      volt = (measure * 5) / 1024;
+      volt = (measure * basevolt) / 1024.0;
+      float resistance = volt / averagecurrent; 
+      conductivity = 1/resistance;
 
       measurements.append(measure);
       myport.write("A");
@@ -287,24 +293,30 @@ void draw() {
   String timestr = new String( "Time "+minutes+":"+ seconds );
   text( timestr, 300, maxheight + 40 );
 
-  if (gsrinitialized) {
-    if (loginitialized) {
-      text( "gl", 280, maxheight + 80 );
-    } else {
-      text( "g-", 280, maxheight + 80 );
-    }
-  } else {
-    if (loginitialized) {
-      text( "-l", 280, maxheight + 80 );
-    } else {
-      text( "--", 280, maxheight + 80 );
-    }
-  }
-
   String sessionstr = new String ( "Session "+session );
-  text( sessionstr, 320, maxheight + 80 );
+  text( sessionstr, 300, maxheight + 80 );
 
-  //  text( str(volt), 380, maxheight + 80 );
+  if (showdetails) {
+    if (gsrinitialized) {
+      if (loginitialized) {
+        text( "gl", 250, maxheight + 80 );
+      } else {
+        text( "g-", 250, maxheight + 80 );
+      }
+    } else {
+      if (loginitialized) {
+        text( "-l", 250, maxheight + 80 );
+      } else {
+        text( "--", 250, maxheight + 80 );
+      }
+    }
+
+    String mstr = new String( "V: "+String.format("%.2f", volt)+" C: "+String.format("%.2f", conductivity) );
+
+    text( mstr, 10, maxheight+120 );
+    
+    text( s.asString(), 10, maxheight+160 );
+  }
 
   getMeasurement();
 
@@ -342,6 +354,7 @@ void keyPressed() {
     }
   }
   if (key == 'r' || key == 'R') {
+    logMsg( "Switch round" );
     if ( round == 1 ) {
       round = 2;
     } else {
@@ -349,14 +362,21 @@ void keyPressed() {
     }
   }
   if (key == 'q' || key == 'Q' ) {
+    logMsg( "Requested to quit" );
     close();
     exit();
   }
   if (key == 'l' || key == 'L' ) {
     if ( isLooping() ) {
+      logMsg( "stop looping" );
       noLoop();
     } else {
+      logMsg( "start looping" );
       loop();
     }
+  }
+  if (key == 'd' || key == 'D' ) {
+    logMsg( "Switch details" );
+    showdetails = !showdetails;
   }
 }

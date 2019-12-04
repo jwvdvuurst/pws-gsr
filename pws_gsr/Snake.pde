@@ -78,4 +78,9 @@ class Snake {
     }
     rect(x, y, scl, scl);
   }
+  
+  String asString() {
+    String out = new String( "s("+x+","+y+") ds("+xspeed+","+yspeed+")" );
+    return out;
+  }
 }
