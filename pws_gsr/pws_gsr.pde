@@ -196,7 +196,8 @@ String extend( String message ) {
   int seconds = (int) ((timestamp / 1000) % 60);
   int minutes = (int) ((timestamp / 1000*60) % 60);
 
-  String outmsg = new String( minutes+":"+seconds+" : "+message );
+  String outmsg = String.format( "%02d:%02d;%s", minutes, seconds, message );
+//  String outmsg = new String( minutes+":"+seconds+" : "+message );
 
   return outmsg;
 }
@@ -209,7 +210,7 @@ void initGsr() {
     try {
       myport = new Serial( this, port, 9600);
       gsrinitialized=true;
-      myport.write("A");
+//      myport.write(65);
     } 
     catch (Exception e) {
       logMsg( "Exception "+e.toString()+" occurred during opening of serial port." );
@@ -234,22 +235,50 @@ int getNumMeasurements() {
   return measurements.size();
 }
 
-void getMeasurement() {
+int getMeasurement() {
+  int measurement = 0;
+  int avgmeasurement = 0;
+  int num = 0;
   if (gsrinitialized) {
-    if (myport.available() > 0) {
-      int measure = myport.read();
-      volt = (measure * basevolt) / 1024.0;
-      float resistance = volt / averagecurrent; 
-      conductivity = 1/resistance;
-
-      measurements.append(measure);
-      myport.write("A");
-      logMsg( new String( "M;"+getNumMeasurements() +";" + measure + ";" + volt ) );
+    while (myport.available() > 0) {
+       measurement += myport.read();
+       num++;
     }
-  } else {
-    logMsg( "Not initialized, not taking a measurement" );
+    
+    if (num > 0) {
+      avgmeasurement = floor( measurement / num );
+    }
   }
+  
+  return avgmeasurement;
 }
+
+void processMeasurement( int measurement ) {
+   volt = (measurement * basevolt) / 1024.0;
+   float resistance = volt / averagecurrent; 
+   conductivity = (1.0f / resistance) * 100;
+
+   measurements.append(measurement);
+//      myport.write(65);
+   logMsg( new String( "M;"+getNumMeasurements() + ";" + measurement + ";" + volt + ";" + conductivity ) );
+}
+
+//void getMeasurement() {
+//  if (gsrinitialized) {
+//    if (myport.available() > 0) {
+//      int measure = myport.read();
+//      volt = (measure * basevolt) / 1024.0;
+//      float resistance = volt / averagecurrent; 
+//      conductivity = 1/resistance;
+
+//      measurements.append(measure);
+////      myport.write(65);
+//      logMsg( new String( "M;"+getNumMeasurements() + ";" + measure + ";" + volt + ";" + conductivity ) );
+//    }
+//  } else {
+//    logMsg( new String( "M;"+getNumMeasurements() + ";---;---;---" ) );
+//  }
+//}
 
 void pickLocation() {
   int cols = maxwidth/scl;
@@ -311,14 +340,17 @@ void draw() {
       }
     }
 
-    String mstr = new String( "V: "+String.format("%.2f", volt)+" C: "+String.format("%.2f", conductivity) );
+    int measurement = getMeasurement();
+    processMeasurement( measurement );
+
+    String mstr = new String( "M: "+String.format("%04d", measurement) + " V: "+String.format("%.2f", volt)+" C: "+String.format("%.2f", conductivity) );
 
     text( mstr, 10, maxheight+120 );
     
     text( s.asString(), 10, maxheight+160 );
   }
 
-  getMeasurement();
+
 
   if (remain <= 0) {
     if (round == 1) {
