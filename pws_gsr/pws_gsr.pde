@@ -339,7 +339,7 @@ void draw() {
         text( "--", 250, maxheight + 80 );
       }
     }
-
+  
     int measurement = getMeasurement();
     processMeasurement( measurement );
 
@@ -348,9 +348,10 @@ void draw() {
     text( mstr, 10, maxheight+120 );
     
     text( s.asString(), 10, maxheight+160 );
+  } else {
+    int measurement = getMeasurement();
+    processMeasurement( measurement );  
   }
-
-
 
   if (remain <= 0) {
     if (round == 1) {
